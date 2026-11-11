@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KanbanFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen bg-[#1e1e1e] text-neutral-100 antialiased">
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <header class="fixed top-0 left-0 right-0 z-30 border-b border-[#2e2e2e] bg-[#1e1e1e]/95 backdrop-blur-xl">
+    <div class="max-w-screen-xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+
+      <!-- Logo -->
+      <div class="flex items-center gap-3 min-w-fit">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/25 flex-shrink-0">
+          <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <rect x="2" y="2" width="9" height="9" rx="2"/>
+            <rect x="13" y="2" width="9" height="9" rx="2"/>
+            <rect x="2" y="13" width="9" height="9" rx="2"/>
+            <rect x="13" y="13" width="9" height="9" rx="2"/>
+          </svg>
+        </div>
+        <span class="font-bold text-neutral-100 text-base tracking-tight">KanbanFlow</span>
+      </div>
+
+      <!-- Streak Counter -->
+      <div id="streak-display" class="flex items-center gap-3 bg-[#2d2d2d] border border-[#3a3a3a] rounded-2xl px-5 py-2 select-none">
+        <span id="streak-fire" class="text-2xl leading-none">🔥</span>
+        <div class="flex flex-col leading-none gap-0.5">
+          <div class="flex items-baseline gap-1.5">
+            <span id="streak-count" class="text-orange-400 font-extrabold text-xl leading-none tabular-nums">0</span>
+            <span class="text-neutral-400 text-xs font-medium">dias</span>
+          </div>
+          <span class="text-[10px] text-neutral-500 uppercase tracking-widest font-semibold">streak</span>
+        </div>
+      </div>
+
+      <!-- New Task Button -->
+      <button
+        id="add-task-btn"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-95 text-white text-sm font-semibold shadow-lg shadow-violet-600/30 transition-all duration-150 min-w-fit"
+      >
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Nova Tarefa
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════ BOARD ═══════════════ -->
+  <main class="max-w-screen-xl mx-auto px-6 pt-24 pb-10">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+      <!-- Column: A Fazer -->
+      <section class="flex flex-col gap-3">
+        <div class="flex items-center gap-2.5 px-1 h-9">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-400 ring-4 ring-blue-400/15 flex-shrink-0"></span>
+          <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">A Fazer</h2>
+          <span id="count-todo" class="text-xs text-neutral-400 font-bold bg-[#2d2d2d] rounded-full px-2 py-0.5 border border-[#3a3a3a] min-w-[26px] text-center tabular-nums">0</span>
+        </div>
+        <div
+          id="col-todo"
+          data-column="todo"
+          class="column-drop-zone flex flex-col gap-2.5 p-3 rounded-2xl bg-[#252525] border border-dashed border-[#333333] min-h-[400px]"
+        ></div>
+      </section>
+
+      <!-- Column: Fazendo -->
+      <section class="flex flex-col gap-3">
+        <div class="flex items-center gap-2.5 px-1 h-9">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 ring-4 ring-amber-400/15 flex-shrink-0"></span>
+          <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Fazendo</h2>
+          <span id="count-doing" class="text-xs text-neutral-400 font-bold bg-[#2d2d2d] rounded-full px-2 py-0.5 border border-[#3a3a3a] min-w-[26px] text-center tabular-nums">0</span>
+        </div>
+        <div
+          id="col-doing"
+          data-column="doing"
+          class="column-drop-zone flex flex-col gap-2.5 p-3 rounded-2xl bg-[#252525] border border-dashed border-[#333333] min-h-[400px]"
+        ></div>
+      </section>
+
+      <!-- Column: Concluído -->
+      <section class="flex flex-col gap-3">
+        <div class="flex items-center gap-2.5 px-1 h-9">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 ring-4 ring-emerald-400/15 flex-shrink-0"></span>
+          <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Concluído</h2>
+          <span id="count-done" class="text-xs text-neutral-400 font-bold bg-[#2d2d2d] rounded-full px-2 py-0.5 border border-[#3a3a3a] min-w-[26px] text-center tabular-nums">0</span>
+        </div>
+        <div
+          id="col-done"
+          data-column="done"
+          class="column-drop-zone flex flex-col gap-2.5 p-3 rounded-2xl bg-[#252525] border border-dashed border-[#333333] min-h-[400px]"
+        ></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ═══════════════ MODAL ═══════════════ -->
+  <div id="modal-overlay" class="fixed inset-0 z-40 bg-black/65 backdrop-blur-sm items-center justify-center p-4" style="display:none">
+    <div class="w-full max-w-md bg-[#252525] border border-[#383838] rounded-2xl shadow-2xl shadow-black/70 overflow-hidden">
+
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-6 py-5 border-b border-[#363636]">
+        <h2 class="text-base font-bold text-neutral-100">Nova Tarefa</h2>
+        <button
+          id="modal-close"
+          class="w-7 h-7 flex items-center justify-center rounded-lg text-neutral-500 hover:text-neutral-200 hover:bg-[#333333] transition-all"
+          aria-label="Fechar"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="task-form" class="px-6 py-5 space-y-5">
+
+        <!-- Title -->
+        <div class="space-y-2">
+          <label for="task-title" class="block text-sm font-semibold text-neutral-300">
+            Título <span class="text-red-400 text-xs font-normal">*</span>
+          </label>
+          <input
+            id="task-title"
+            type="text"
+            placeholder="Ex: Implementar sistema de login..."
+            autocomplete="off"
+            class="w-full bg-[#333333] border border-[#454545] rounded-xl px-4 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all"
+          >
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-2">
+          <label for="task-description" class="block text-sm font-semibold text-neutral-300">
+            Descrição <span class="text-neutral-500 text-xs font-normal">(opcional)</span>
+          </label>
+          <textarea
+            id="task-description"
+            rows="3"
+            placeholder="Descreva os detalhes da tarefa..."
+            class="w-full bg-[#333333] border border-[#454545] rounded-xl px-4 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Priority -->
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-neutral-300">Prioridade</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="priority" value="baixa" class="sr-only" checked>
+              <div class="priority-btn priority-btn-baixa py-2.5 rounded-xl border border-emerald-800/70 bg-emerald-900/25 text-emerald-400 text-xs font-bold text-center tracking-wide uppercase transition-all">
+                🟢 Baixa
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="priority" value="media" class="sr-only">
+              <div class="priority-btn priority-btn-media py-2.5 rounded-xl border border-amber-800/70 bg-amber-900/25 text-amber-400 text-xs font-bold text-center tracking-wide uppercase transition-all">
+                🟡 Média
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="priority" value="alta" class="sr-only">
+              <div class="priority-btn priority-btn-alta py-2.5 rounded-xl border border-red-800/70 bg-red-900/25 text-red-400 text-xs font-bold text-center tracking-wide uppercase transition-all">
+                🔴 Alta
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Initial Column -->
+        <div class="space-y-2">
+          <label for="task-column" class="block text-sm font-semibold text-neutral-300">Coluna Inicial</label>
+          <select
+            id="task-column"
+            class="w-full bg-[#333333] border border-[#454545] rounded-xl px-4 py-2.5 text-sm text-neutral-100 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all cursor-pointer"
+          >
+            <option value="todo">📋  A Fazer</option>
+            <option value="doing">⚡  Fazendo</option>
+            <option value="done">✅  Concluído</option>
+          </select>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3 pt-1">
+          <button
+            type="button"
+            id="cancel-btn"
+            class="flex-1 py-2.5 text-sm font-medium text-neutral-400 border border-[#454545] rounded-xl hover:bg-[#333333] hover:text-neutral-200 transition-all"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="flex-1 py-2.5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-500 active:scale-95 rounded-xl shadow-lg shadow-violet-600/20 transition-all"
+          >
+            Criar Tarefa
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TOAST ═══════════════ -->
+  <div id="toast" class="toast-hidden fixed bottom-6 right-6 z-50 flex items-center gap-3.5 bg-[#2d2d2d] border border-[#3a3a3a] rounded-2xl px-5 py-3.5 shadow-xl shadow-black/50 max-w-xs pointer-events-none">
+    <span id="toast-icon" class="text-xl leading-none flex-shrink-0">✅</span>
+    <p id="toast-message" class="text-sm font-semibold text-neutral-200 leading-snug"></p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
